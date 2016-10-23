@@ -69,8 +69,7 @@ app.get('/slack/firesong', function(req, res) {
 });
 
 app.post('/slack/firesong', function(req, res) {
-  console.log('body ' + req.body)
-  console.log('posttt')
+  console.log(req.body)
   res.send({
     "response_type": "in_channel",
     "text": "This is some response text."
