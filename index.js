@@ -110,12 +110,12 @@ function createMessage(emoji, callback) {
     if (error) {
       callback({
         'response_type': 'ephemeral',
-        'text': "No songs match that emoji, let's make a new match: `/firesong-add :" + emoji + ": [enter a Spotify URI (spotify:track:2uljPrNySotVP1d42B30X2)]`",
+        'text': "No songs match that emoji, let's make a new match:\n`/firesong-add :" + emoji + ": [enter a Spotify URI (spotify:track:2uljPrNySotVP1d42B30X2)]`",
       })
     } else {
       callback({
         'response_type': 'in_channel',
-        'text': 'fire',
+        'text': ':' + emoji + ':',
         'attachments': [
           {
             'text': url
