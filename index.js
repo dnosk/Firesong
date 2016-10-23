@@ -22,7 +22,7 @@ var app = express()
 var bodyParser = require('body-parser');
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-app.listen(process.env.PORT || 3000, function () {});
+app.listen(process.env.PORT || 3000, function() {});
 
 var regexEmoji = require("regex-emoji")
 var matchAll = require("match-all")
@@ -94,25 +94,29 @@ function findMatch(emojis, callback) {
       'text': 'No emojis were detected in you message. Try this format: `/firesong :fire:`',
     })
   } else if (emojis.length == 1) {
-    createMessage(emojis[0], function(message) {
+    getSongURL(emojis[0], function(message) {
       callback(message)
     })
   } else {
     var combo = emojis.join('||')
-    createMessage(combo, function(message) {
+    getSongURL(combo, function(message) {
       callback(message)
     })
   }
 }
 
-function createMessage(emoji, callback) {
-  getSongURL(emoji, function(url, error) {
-    if (error) {
+function getSongURL(emoji, callback) {
+  var ref = firebase.database().ref('/emojis')
+  ref.once('value', function(data) {
+    var songs = data.val()[emoji]
+    if (!songs) {
       callback({
         'response_type': 'ephemeral',
-        'text': "No songs match that emoji, let's make a new match:\n`/firesong-add :" + emoji + ": [enter a Spotify URI (spotify:track:2uljPrNySotVP1d42B30X2)]`",
+        'text': "No songs match that emoji, let's make a new match:\n`/firesong-add :" + emoji + ": [enter a Spotify URI]\n(spotify:track:2uljPrNySotVP1d42B30X2)`",
       })
     } else {
+      var url = songs[Math.floor(Math.random() * songs.length)].url
+
       callback({
         'response_type': 'in_channel',
         'text': ':' + emoji + ':',
@@ -122,24 +126,6 @@ function createMessage(emoji, callback) {
           }
         ]
       })
-    }
-  })
-}
-
-function getSongURL(emoji, callback) {
-  var ref = firebase.database().ref('/emojis')
-  ref.once('value', function(data) {
-    var songs = data.val()[emoji]
-    if (!songs) {
-      callback(null, true)
-    } else {
-      var url
-      if (songs.length > 1) {
-        url = songs[Math.floor(Math.random() * songs.length)].url
-      } else {
-        url = songs.url
-      }
-      callback(url)
     }
   })
 }
