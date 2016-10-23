@@ -58,11 +58,17 @@ app.get('/slack/callback', function(req, res) {
   });
 });
 
+app.get('/slack/firesong', function(req, res) {
+  console.log(req)
+  res.send('Hello World firesong get!');
+});
+
 app.post('/slack/firesong', function(req, res) {
-  console.log(res)
+  console.log(req)
   res.send('Hello World firesong!');
 });
 
 app.get('/slack/firesong-add', function(req, res) {
+  console.log(req)
   res.send('Hello World firesong-add!');
 });
