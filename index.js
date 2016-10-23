@@ -60,11 +60,13 @@ app.get('/slack/callback', function(req, res) {
 
 app.get('/slack/firesong', function(req, res) {
   console.log(req)
-  res.send('Hello World firesong get!');
+  console.log('gettt')
+  // res.send('Hello World firesong get!');
 });
 
 app.post('/slack/firesong', function(req, res) {
   console.log(req)
+  console.log('posttt')
   res.send('Hello World firesong!');
 });
 
