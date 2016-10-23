@@ -82,11 +82,6 @@ app.post('/slack/firesong', function(req, res) {
   })
 });
 
-var emojis = matchAll(':vertical_traffic_light: :dancer:', regexEmoji()).toArray()
-findMatch(emojis, function(message) {
-  res.send(message);
-})
-
 app.get('/slack/firesong-add', function(req, res) {
   console.log(req)
   res.send('Hello World firesong-add!');
@@ -124,7 +119,7 @@ function getSongURL(emoji, callback) {
       console.log(emoji.split('||'))
       callback({
         'response_type': 'in_channel',
-        'text': ':' + emoji + ':',
+        'text': ':' + emoji.replace('||', ': :') + ':',
         'attachments': [
           {
             'text': url
