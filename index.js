@@ -66,9 +66,12 @@ app.get('/slack/firesong', function(req, res) {
 var bodyParser = require('body-parser');
 app.use(bodyParser.json());
 app.post('/slack/firesong', function(req, res) {
-  console.log(req.headers)
+  console.log(req)
   console.log('posttt')
-  res.send('Hello World firesong post!');
+  res.send({
+    "response_type": "in_channel",
+    "text": "This is some response text."
+  });
 });
 
 app.get('/slack/firesong-add', function(req, res) {
