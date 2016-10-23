@@ -24,6 +24,9 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.listen(process.env.PORT || 3000, function() {});
 
+var Mixpanel = require('mixpanel');
+var mixpanel = Mixpanel.init(process.env.MIXPANEL_KEY);
+
 var regexEmoji = require("regex-emoji")
 var matchAll = require("match-all")
 
@@ -80,6 +83,17 @@ app.post('/slack/firesong', function(req, res) {
   findMatch(emojis, function(message) {
     res.send(message);
   })
+
+  mixpanel.track('/firesong', {
+    distinct_id: req.body.user_id,
+    user_id: req.body.user_id,
+    user_name: req.body.user_name,
+    channel_id: req.body.channel_id,
+    team_id: req.body.team_id,
+    team_domain: req.body.team_domain,
+    text: req.body.text,
+    emojis: emojis
+  });
 });
 
 app.get('/slack/firesong-add', function(req, res) {
