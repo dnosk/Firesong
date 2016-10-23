@@ -19,8 +19,7 @@ controller.configureSlackApp({
 var request = require('request');
 var express = require('express');
 var app = express()
-app.set('port', process.env.PORT);
-app.listen(app.get('port'));
+app.listen(process.env.PORT || 3000, function () {});
 
 // TODO: Handle the res.send for success and failure
 app.get('/slack/callback', function(req, res) {
