@@ -66,7 +66,7 @@ app.get('/slack/firesong', function(req, res) {
 var bodyParser = require('body-parser');
 app.use(bodyParser.json());
 app.post('/slack/firesong', function(req, res) {
-  console.log(req.body)
+  console.log(req)
   console.log('posttt')
   res.send('Hello World firesong!');
 });
