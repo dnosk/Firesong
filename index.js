@@ -65,10 +65,11 @@ app.get('/slack/firesong', function(req, res) {
 });
 var bodyParser = require('body-parser');
 app.use(bodyParser.json());
-app.post('/slack/firesong', function(req, res) {
+app.post('/slack/firesong', function(req, res, payload) {
   console.log(req)
+  console.log(payload)
   console.log('posttt')
-  res.send('spotify:track:3Cx4yrFaX8CeHwBMReOWXI');
+  res.send('Hello World firesong post!');
 });
 
 app.get('/slack/firesong-add', function(req, res) {
