@@ -68,7 +68,7 @@ app.use(bodyParser.json());
 app.post('/slack/firesong', function(req, res) {
   console.log(req)
   console.log('posttt')
-  res.send('Hello World firesong!');
+  res.send('spotify:track:3Cx4yrFaX8CeHwBMReOWXI');
 });
 
 app.get('/slack/firesong-add', function(req, res) {
