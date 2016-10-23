@@ -17,8 +17,12 @@ controller.configureSlackApp({
 });
 
 var request = require('request');
+var url = require('url');
 var express = require('express');
 var app = express()
+var bodyParser = require('body-parser');
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 app.listen(process.env.PORT || 3000, function () {});
 
 // TODO: Handle the res.send for success and failure
@@ -63,10 +67,9 @@ app.get('/slack/firesong', function(req, res) {
   console.log('gettt')
   // res.send('Hello World firesong get!');
 });
-var bodyParser = require('body-parser');
-app.use(bodyParser.json());
+
 app.post('/slack/firesong', function(req, res) {
-  console.log(req)
+  console.log('body ' + req.body)
   console.log('posttt')
   res.send({
     "response_type": "in_channel",
