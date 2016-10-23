@@ -67,17 +67,6 @@ app.get('/slack/callback', function(req, res) {
   });
 });
 
-// { token: 'LLaOadhqMhUZuZg6ZQVSqZ2W',
-// 2016-10-23T04:55:05.815651+00:00 app[web.1]:   team_id: 'T0U3CCQJE',
-// 2016-10-23T04:55:05.815652+00:00 app[web.1]:   team_domain: 'paralleltracks',
-// 2016-10-23T04:55:05.815653+00:00 app[web.1]:   channel_id: 'D1KENTX0S',
-// 2016-10-23T04:55:05.815658+00:00 app[web.1]:   channel_name: 'directmessage',
-// 2016-10-23T04:55:05.815658+00:00 app[web.1]:   user_id: 'U0VMY8MK9',
-// 2016-10-23T04:55:05.815659+00:00 app[web.1]:   user_name: 'dan',
-// 2016-10-23T04:55:05.815660+00:00 app[web.1]:   command: '/firesong',
-// 2016-10-23T04:55:05.815660+00:00 app[web.1]:   text: 'hay',
-// 2016-10-23T04:55:05.815662+00:00 app[web.1]:   response_url: 'https://hooks.slack.com/commands/T0U3CCQJE/95004450980/izDylvzhTgQG0gpZtpXLOqVH' }
-
 app.post('/slack/firesong', function(req, res) {
   var emojis = matchAll(req.body.text, regexEmoji()).toArray()
   findMatch(emojis, function(message) {
@@ -85,7 +74,7 @@ app.post('/slack/firesong', function(req, res) {
   })
 
   mixpanel.track('/firesong', {
-    distinct_id: req.body.user_id,
+    distinct_id: req.body.response_url.substr(33),
     user_id: req.body.user_id,
     user_name: req.body.user_name,
     channel_id: req.body.channel_id,
