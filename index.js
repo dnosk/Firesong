@@ -59,7 +59,7 @@ app.get('/slack/callback', function(req, res) {
 });
 
 app.post('/slack/firesong', function(req, res) {
-  console.log(req)
+  console.log(res)
   res.send('Hello World firesong!');
 });
 
