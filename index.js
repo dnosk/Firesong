@@ -24,12 +24,6 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.listen(process.env.PORT || 3000, function() {});
 
-var Mixpanel = require('mixpanel');
-var mixpanel = Mixpanel.init(process.env.MIXPANEL_KEY);
-
-var regexEmoji = require("regex-emoji")
-var matchAll = require("match-all")
-
 // TODO: Handle the res.send for success and failure
 app.get('/slack/callback', function(req, res) {
   var url = 'https://slack.com/api/oauth.access?';
@@ -59,6 +53,7 @@ app.get('/slack/callback', function(req, res) {
             console.log('Firebase Error: ' + error)
           } else {
             console.log(team[data.team_id].team_name + ' was added to Firebase')
+            // TODO: New Success Page
             res.send('Hello World!');
           }
         });
@@ -68,27 +63,66 @@ app.get('/slack/callback', function(req, res) {
 });
 
 app.post('/slack/firesong', function(req, res) {
-  var emojis = matchAll(req.body.text, regexEmoji()).toArray()
-  findMatch(emojis, function(message) {
-    res.send(message);
-  })
+  var Genius = require('node-genius')
+  var genius = new Genius(process.env.GENIUS_ACCESS_TOKEN)
+  genius.search(req.body.text, function (error, results) {
+    var data = JSON.parse(results)
+    var hits = data.response.hits
+    randomGeniusHit(hits, function(message, spotify_id) {
+      res.send(message)
 
-  mixpanel.track('/firesong', {
-    distinct_id: req.body.response_url.substr(33),
-    user_id: req.body.user_id,
-    user_name: req.body.user_name,
-    channel_id: req.body.channel_id,
-    team_id: req.body.team_id,
-    team_domain: req.body.team_domain,
-    text: req.body.text,
-    emojis: emojis
+      var Mixpanel = require('mixpanel');
+      var mixpanel = Mixpanel.init(process.env.MIXPANEL_KEY);
+      mixpanel.track('/firesong', {
+        distinct_id: req.body.response_url.substr(33),
+        user_id: req.body.user_id,
+        user_name: req.body.user_name,
+        channel_id: req.body.channel_id,
+        team_id: req.body.team_id,
+        team_domain: req.body.team_domain,
+        text: req.body.text,
+        song: spotify_id
+      });
+    })
   });
 });
 
-app.get('/slack/firesong-add', function(req, res) {
-  console.log(req)
-  res.send('Hello World firesong-add!');
-});
+function randomGeniusHit(hits, callback) {
+  var random = Math.floor(Math.random() * hits.length);
+  var track = hits[random].result.title + ' ' + hits[random].result.primary_artist.name
+  getSpotifyTrack(track, hits, function(message, spotify_id) {
+    callback(message, spotify_id)
+  })
+}
+
+function getSpotifyTrack(track, hits, callback) {
+  var url = 'https://api.spotify.com/v1/search?q=' + encodeURIComponent(track) + '&type=track'
+  request(url, function (error, response, body) {
+    if (error) {
+      randomGeniusHit(hits)
+    } else {
+      var data = JSON.parse(body)
+      if (data.tracks.items.length == 0) {
+        randomGeniusHit(hits)
+      } else {
+        var song = {}
+        song[data.tracks.items[0].id] = {
+          artist: data.tracks.items[0].artists[0].name,
+          external_url: data.tracks.items[0].external_urls.spotify,
+          image_url: data.tracks.items[0].album.images[0].url,
+          name: data.tracks.items[0].name,
+          preview_url: data.tracks.items[0].preview_url,
+          url: data.tracks.items[0].uri
+        }
+        console.log(song)
+        callback({
+          'response_type': 'in_channel',
+          'text': data.tracks.items[0].external_url
+        }, data.tracks.items[0].uri)
+      }
+    }
+  })
+}
 
 function findMatch(emojis, callback) {
   if (emojis.length == 0) {
@@ -96,39 +130,29 @@ function findMatch(emojis, callback) {
       'response_type': 'ephemeral',
       'text': 'No emojis were detected in you message. Try this format: `/firesong :fire:`',
     })
-  } else if (emojis.length == 1) {
-    getSongURL(emojis[0], function(message) {
-      callback(message)
-    })
   } else {
-    var combo = emojis.join('||')
-    getSongURL(combo, function(message) {
-      callback(message)
+    var emoji = emojis.join('||')
+    var ref = firebase.database().ref('/emojis')
+    ref.once('value', function(data) {
+      var songs = data.val()[emoji]
+      if (!songs) {
+        callback({
+          'response_type': 'ephemeral',
+          'text': "No songs match that emoji, let's make a new match:\n`/firesong-add :" + emoji + ": [enter a Spotify URI]\n(spotify:track:2uljPrNySotVP1d42B30X2)`",
+        })
+      } else {
+        var url = songs[Math.floor(Math.random() * songs.length)].url
+        console.log(emoji.split('||'))
+        callback({
+          'response_type': 'in_channel',
+          'text': ':' + emoji.replace('||', ': :') + ':',
+          'attachments': [
+            {
+              'text': url
+            }
+          ]
+        })
+      }
     })
   }
-}
-
-function getSongURL(emoji, callback) {
-  var ref = firebase.database().ref('/emojis')
-  ref.once('value', function(data) {
-    var songs = data.val()[emoji]
-    if (!songs) {
-      callback({
-        'response_type': 'ephemeral',
-        'text': "No songs match that emoji, let's make a new match:\n`/firesong-add :" + emoji + ": [enter a Spotify URI]\n(spotify:track:2uljPrNySotVP1d42B30X2)`",
-      })
-    } else {
-      var url = songs[Math.floor(Math.random() * songs.length)].url
-      console.log(emoji.split('||'))
-      callback({
-        'response_type': 'in_channel',
-        'text': ':' + emoji.replace('||', ': :') + ':',
-        'attachments': [
-          {
-            'text': url
-          }
-        ]
-      })
-    }
-  })
 }
