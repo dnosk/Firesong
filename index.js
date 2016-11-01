@@ -1,3 +1,5 @@
+require ('newrelic');
+
 var firebase = require('firebase');
 firebase.initializeApp({
   apiKey: process.env.FIREBASE_API_KEY,
@@ -53,7 +55,6 @@ app.get('/slack/callback', function(req, res) {
             console.log('Firebase Error: ' + error)
           } else {
             console.log(team[data.team_id].team_name + ' was added to Firebase')
-            // TODO: New Success Page
             res.send('Hello World!');
           }
         });
@@ -87,17 +88,6 @@ app.post('/slack/firesong', function(req, res) {
   });
 });
 
-// var Genius = require('node-genius')
-// var genius = new Genius(process.env.GENIUS_ACCESS_TOKEN)
-// genius.search(':flashlight:', function (error, results) {
-//   var data = JSON.parse(results)
-//   var hits = data.response.hits
-//   getSpotifyTrack(hits, function(message, spotify_id) {
-//     console.log(message)
-//     console.log(spotify_id)
-//   })
-// });
-
 function randomGeniusHit(hits, callback) {
   var random = Math.floor(Math.random() * hits.length);
   var track = hits[random].result.title + ' ' + hits[random].result.primary_artist.name
@@ -112,12 +102,10 @@ function getSpotifyTrack(hits, callback) {
   var url = 'https://api.spotify.com/v1/search?q=' + encodeURIComponent(track) + '&type=track'
   request(url, function (error, response, body) {
     if (error) {
-      // change
       getSpotifyTrack(hits, callback)
     } else {
       var data = JSON.parse(body)
       if (data.tracks.items.length == 0) {
-        // change
         getSpotifyTrack(hits, callback)
       } else {
         var song = {}
@@ -136,37 +124,4 @@ function getSpotifyTrack(hits, callback) {
       }
     }
   })
-}
-
-function findMatch(emojis, callback) {
-  if (emojis.length == 0) {
-    callback({
-      'response_type': 'ephemeral',
-      'text': 'No emojis were detected in you message. Try this format: `/firesong :fire:`',
-    })
-  } else {
-    var emoji = emojis.join('||')
-    var ref = firebase.database().ref('/emojis')
-    ref.once('value', function(data) {
-      var songs = data.val()[emoji]
-      if (!songs) {
-        callback({
-          'response_type': 'ephemeral',
-          'text': "No songs match that emoji, let's make a new match:\n`/firesong-add :" + emoji + ": [enter a Spotify URI]\n(spotify:track:2uljPrNySotVP1d42B30X2)`",
-        })
-      } else {
-        var url = songs[Math.floor(Math.random() * songs.length)].url
-        console.log(emoji.split('||'))
-        callback({
-          'response_type': 'in_channel',
-          'text': ':' + emoji.replace('||', ': :') + ':',
-          'attachments': [
-            {
-              'text': url
-            }
-          ]
-        })
-      }
-    })
-  }
 }
