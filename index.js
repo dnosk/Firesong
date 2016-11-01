@@ -68,7 +68,7 @@ app.post('/slack/firesong', function(req, res) {
   genius.search(req.body.text, function (error, results) {
     var data = JSON.parse(results)
     var hits = data.response.hits
-    randomGeniusHit(hits, function(message, spotify_id) {
+    getSpotifyTrack(hits, function(message, spotify_id) {
       res.send(message)
 
       var Mixpanel = require('mixpanel');
@@ -87,6 +87,17 @@ app.post('/slack/firesong', function(req, res) {
   });
 });
 
+// var Genius = require('node-genius')
+// var genius = new Genius(process.env.GENIUS_ACCESS_TOKEN)
+// genius.search(':flashlight:', function (error, results) {
+//   var data = JSON.parse(results)
+//   var hits = data.response.hits
+//   getSpotifyTrack(hits, function(message, spotify_id) {
+//     console.log(message)
+//     console.log(spotify_id)
+//   })
+// });
+
 function randomGeniusHit(hits, callback) {
   var random = Math.floor(Math.random() * hits.length);
   var track = hits[random].result.title + ' ' + hits[random].result.primary_artist.name
@@ -95,15 +106,19 @@ function randomGeniusHit(hits, callback) {
   })
 }
 
-function getSpotifyTrack(track, hits, callback) {
+function getSpotifyTrack(hits, callback) {
+  var random = Math.floor(Math.random() * hits.length);
+  var track = hits[random].result.title + ' ' + hits[random].result.primary_artist.name
   var url = 'https://api.spotify.com/v1/search?q=' + encodeURIComponent(track) + '&type=track'
   request(url, function (error, response, body) {
     if (error) {
-      randomGeniusHit(hits)
+      // change
+      getSpotifyTrack(hits, callback)
     } else {
       var data = JSON.parse(body)
       if (data.tracks.items.length == 0) {
-        randomGeniusHit(hits)
+        // change
+        getSpotifyTrack(hits, callback)
       } else {
         var song = {}
         song[data.tracks.items[0].id] = {
@@ -114,10 +129,9 @@ function getSpotifyTrack(track, hits, callback) {
           preview_url: data.tracks.items[0].preview_url,
           url: data.tracks.items[0].uri
         }
-        console.log(song)
         callback({
           'response_type': 'in_channel',
-          'text': data.tracks.items[0].external_url
+          'text': data.tracks.items[0].external_urls.spotify
         }, data.tracks.items[0].uri)
       }
     }
