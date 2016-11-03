@@ -46,6 +46,7 @@ app.get('/slack/callback', function(req, res) {
       var data = JSON.parse(body)
       if (!data.ok) {
         console.log('Slack OAuth Error: ' + data.error)
+        res.sendFile(__dirname + '/public/failure.html')
       } else {
         var team = {}
         team[data.team_id] = {
@@ -59,6 +60,7 @@ app.get('/slack/callback', function(req, res) {
         firebase.database().ref('/slack/').update(team, function(error) {
           if (error) {
             console.log('Firebase Error: ' + error)
+            res.sendFile(__dirname + '/public/failure.html')
           } else {
             console.log(team[data.team_id].team_name + ' was added to Firebase')
             res.sendFile(__dirname + '/public/success.html')
