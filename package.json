@@ -18,6 +18,7 @@
     "mixpanel": "^0.5.0",
     "newrelic": "^1.33.0",
     "node-genius": "^1.1.0",
+    "path": "^0.12.7",
     "regex-emoji": "^2.0.4",
     "request": "^2.75.0"
   }

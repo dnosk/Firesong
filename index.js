@@ -20,13 +20,18 @@ controller.configureSlackApp({
 
 var request = require('request');
 var express = require('express');
+var path = require('path');
 var app = express()
 var bodyParser = require('body-parser');
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.static(path.join(__dirname, 'public')));
 app.listen(process.env.PORT || 3000, function() {});
 
-// TODO: Handle the res.send for success and failure
+app.get('/', function(req, res) {
+  res.sendFile(__dirname + '/public/index.html')
+})
+
 app.get('/slack/callback', function(req, res) {
   var url = 'https://slack.com/api/oauth.access?';
   url += 'client_id=' + process.env.SLACK_CLIENT_ID;
@@ -36,6 +41,7 @@ app.get('/slack/callback', function(req, res) {
   request(url, function (error, response, body) {
     if (error || response.statusCode != 200) {
       console.log('Request Error: ' + error)
+      res.sendFile(__dirname + '/public/failure.html')
     } else {
       var data = JSON.parse(body)
       if (!data.ok) {
@@ -55,7 +61,7 @@ app.get('/slack/callback', function(req, res) {
             console.log('Firebase Error: ' + error)
           } else {
             console.log(team[data.team_id].team_name + ' was added to Firebase')
-            res.send('Hello World!');
+            res.sendFile(__dirname + '/public/success.html')
           }
         });
       }
