@@ -1,4 +1,4 @@
-h1, h2, h5 {
+h1, h2, h5, p {
 	font-family: 'Open Sans', sans-serif;
 	font-weight: 400;
 }
@@ -22,6 +22,15 @@ body {
 	width: 500px;
 	display: block;
 	margin: auto;
+}
+
+p {
+	text-align: center;
+}
+
+p a {
+	color: #CC2255;
+	text-decoration: none;
 }
 
 img {

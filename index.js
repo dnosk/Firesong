@@ -97,7 +97,8 @@ app.post('/slack/firesong', function(req, res) {
 });
 
 function randomGeniusHit(hits, callback) {
-  var random = Math.floor(Math.random() * hits.length);
+  var i = (hits.length < 4 ? hits.length : 3);
+  var random = Math.floor(Math.random() * i);
   var track = hits[random].result.title + ' ' + hits[random].result.primary_artist.name
   getSpotifyTrack(track, hits, function(message, spotify_id) {
     callback(message, spotify_id)
