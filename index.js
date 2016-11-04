@@ -32,6 +32,18 @@ app.get('/', function(req, res) {
   res.sendFile(__dirname + '/public/index.html')
 })
 
+app.get('/success', function (req, res) {
+    res.sendFile(__dirname + '/public/success.html')
+});
+
+app.get('/fail', function (req, res) {
+    res.sendFile(__dirname + '/public/fail.html')
+});
+
+app.get('/privacy', function (req, res) {
+    res.sendFile(__dirname + '/public/privacy.html')
+});
+
 app.get('/slack/callback', function(req, res) {
   var url = 'https://slack.com/api/oauth.access?';
   url += 'client_id=' + process.env.SLACK_CLIENT_ID;
