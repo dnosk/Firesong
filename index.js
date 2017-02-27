@@ -141,46 +141,6 @@ app.post('/slack/firesong', function(req, res) {
   });
 });
 
-genius.search('fire', function (error, results) {
-    var dataJSON = JSON.parse(results);
-    var hits = dataJSON.response.hits;
-
-    // Get Random Genius Hit
-    var i = (hits.length < 4 ? hits.length : 3);
-    var random = Math.floor(Math.random() * i);
-
-    // Get Genius song from random song id
-    var geniusId = hits[random].result.id
-    genius.getSong(geniusId, function (error, song) {
-      if (error) {
-        console.error('Get random Genius song error: ', error);
-      } else {
-        var songJSON = JSON.parse(song);
-
-        // Find the Spotify Media
-        var media = songJSON.response.song.media
-        for (index in media) {
-          if (media[index].provider == 'spotify') {
-            var spotifyURL = media[index].url
-            var spotifyId = spotifyURL.substr(37)
-            console.log(spotifyURL)
-
-            // Send message to Slack
-            var message = {
-              'response_type': 'in_channel',
-              'text': spotifyURL
-            }
-            res.send(message)
-
-            // Record in Mixpanel
-            recordMixpanelEvent(req, spotifyId)
-            break
-          }
-        }
-      }
-    });
-  });
-
 function recordMixpanelEvent(req, spotify_id) {
   mixpanel.track('/firesong', {
     distinct_id: req.body.response_url.substr(33),
