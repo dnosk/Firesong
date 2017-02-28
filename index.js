@@ -116,7 +116,7 @@ app.post('/slack/firesong', function(req, res) {
       var geniusId = hits[random].result.id
       genius.getSong(geniusId, function (error, song) {
         if (error) {
-          console.error('Get random Genius song error: ', error);
+          console.log('Get random Genius song error: ', error);
           sendDefaultMessage(res);
         } else {
           var songJSON = JSON.parse(song);
@@ -129,6 +129,7 @@ app.post('/slack/firesong', function(req, res) {
               var spotifyId = spotifyURL.substr(37)
 
               if (!spotifyURL.includes('local')) {
+                console.log('Contains local')
                 sendDefaultMessage(res)
               } else {
                 // Send message to Slack
