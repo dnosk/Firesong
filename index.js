@@ -128,8 +128,8 @@ app.post('/slack/firesong', function(req, res) {
               var spotifyURL = media[index].url
               var spotifyId = spotifyURL.substr(37)
 
-              if (!spotifyURL.includes('local')) {
-                console.log('Contains local')
+              if (spotifyURL.includes('local')) {
+                console.log('Contains local: ' + spotifyURL)
                 sendDefaultMessage(res)
               } else {
                 // Send message to Slack
