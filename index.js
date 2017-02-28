@@ -105,6 +105,7 @@ app.post('/slack/firesong', function(req, res) {
     var hits = dataJSON.response.hits;
 
     if (hits.length < 1) {
+      console.log('No hits: ' + dataJSON)
       sendDefaultMessage(res);
     } else {
       // Get Random Genius Hit
