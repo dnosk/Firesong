@@ -104,43 +104,53 @@ app.post('/slack/firesong', function(req, res) {
     var dataJSON = JSON.parse(results);
     var hits = dataJSON.response.hits;
 
-    // Get Random Genius Hit
-    var i = (hits.length < 4 ? hits.length : 3);
-    var random = Math.floor(Math.random() * i);
+    if (hits.length < 1) {
+      sendDefaultMessage(res);
+    } else {
+      // Get Random Genius Hit
+      var i = (hits.length < 4 ? hits.length : 3);
+      var random = Math.floor(Math.random() * i);
 
-    // Get Genius song from random song id
-    var geniusId = hits[random].result.id
-    genius.getSong(geniusId, function (error, song) {
-      if (error) {
-        console.error('Get random Genius song error: ', error);
-      } else {
-        var songJSON = JSON.parse(song);
+      // Get Genius song from random song id
+      var geniusId = hits[random].result.id
+      genius.getSong(geniusId, function (error, song) {
+        if (error) {
+          console.error('Get random Genius song error: ', error);
+          sendDefaultMessage(res);
+        } else {
+          var songJSON = JSON.parse(song);
 
-        // Find the Spotify Media
-        var media = songJSON.response.song.media
-        for (index in media) {
-          if (media[index].provider == 'spotify') {
-            var spotifyURL = media[index].url
-            var spotifyId = spotifyURL.substr(37)
-            console.log(spotifyURL)
+          // Find the Spotify Media
+          var media = songJSON.response.song.media
+          for (index in media) {
+            if (media[index].provider == 'spotify') {
+              var spotifyURL = media[index].url
+              var spotifyId = spotifyURL.substr(37)
 
-            // Send message to Slack
-            var message = {
-              'response_type': 'in_channel',
-              'text': spotifyURL
+              if (!spotifyURL.includes('local')) {
+                sendDefaultMessage(res)
+              } else {
+                // Send message to Slack
+                var message = {
+                  'response_type': 'in_channel',
+                  'text': spotifyURL
+                };
+                res.send(message);
+
+                // Record in Mixpanel
+                recordMixpanelEvent(req, spotifyId);
+              }
+
+              break
             }
-            res.send(message)
-
-            // Record in Mixpanel
-            recordMixpanelEvent(req, spotifyId)
-            break
           }
         }
-      }
-    });
+      });
+    }
   });
 });
 
+// Mixpanel Event
 function recordMixpanelEvent(req, spotify_id) {
   mixpanel.track('/firesong', {
     distinct_id: req.body.response_url.substr(33),
@@ -152,4 +162,13 @@ function recordMixpanelEvent(req, spotify_id) {
     text: req.body.text,
     song: spotify_id
   });
+}
+
+// Send default song in case anything goes wrong
+function sendDefaultMessage(res) {
+  var message = {
+    'response_type': 'in_channel',
+    'text': "Something went wrong 🤔 we're on it. In the meantime: " + 'https://open.spotify.com/track/2uljPrNySotVP1d42B30X2'
+  }
+  res.send(message);
 }
