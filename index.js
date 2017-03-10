@@ -190,7 +190,7 @@ function tryToGetAnotherRandomHit(res, hits, attempt) {
     sendDefaultMessage(res);
   } else {
     console.log('Grab another random hit, attempts: ' + (attempt + 1))
-    getRandomGeniusHit(hits, attempt + 1);
+    getRandomGeniusHit(res, hits, attempt + 1);
   }
 }
 
