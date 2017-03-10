@@ -100,9 +100,11 @@ app.get('/slack/callback', function(req, res) {
 
 // Slack Firesong
 app.post('/slack/firesong', function(req, res) {
+  console.log('/slack/firesong find: ' + req.body.text)
   genius.search(req.body.text, function (error, results) {
     var dataJSON = JSON.parse(results);
     var hits = dataJSON.response.hits;
+    console.log('Genius found ' + hits.length + ' hits')
 
     if (hits.length < 1) {
       console.log('No hits: ' + dataJSON)
