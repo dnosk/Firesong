@@ -132,38 +132,41 @@ function getRandomGeniusHit(res, hits, attempt) {
 
       // Find the Spotify Media
       if (!songJSON.response.song.media) {
+        console.log('No media')
         tryToGetAnotherRandomHit(res, hits, attempt)
       } else {
         var media = songJSON.response.song.media
-        var spotifyFound = false
-        for (index in media) {
-          if (media[index].provider == 'spotify') {
-            spotifyFound = true
-            var spotifyURL = media[index].url
-            var spotifyId = spotifyURL.substr(37)
+        var spotifyMedia = media.map(function(source) { if (source.provider == 'spotify') { return source } })
+        if (spotifyMedia) {
+          var spotifyURL = spotifyMedia.url
+          if (spotifyURL.includes('local')) {
+            console.log('Local Spotify song id')
+            tryToGetAnotherRandomHit(res, hits, attempt)
+          } else {
+            // Send message to Slack
+            res.send({
+              'response_type': 'in_channel',
+              'text': spotifyURL
+            });
 
-            if (spotifyURL.includes('local')) {
-              console.log('Contains local: ' + spotifyURL)
-              tryToGetAnotherRandomHit(res, hits, attempt)
-            } else {
-              // Send message to Slack
-              var message = {
-                'response_type': 'in_channel',
-                'text': spotifyURL
-              };
-              res.send(message);
-
-              // Record in Mixpanel
-              recordMixpanelEvent(req, spotifyId);
-            }
-
-            break
+            // Record in Mixpanel
+            recordMixpanelEvent(req, spotifyURL.substr(37));
           }
-        }
+        } else {
+          if (media.length == 0) {
+            console.log('No media')
+            tryToGetAnotherRandomHit(res, hits, attempt)
+          } else {
+            var mediaURL = spotifyMedia.url
+            // Send message to Slack
+            res.send({
+              'response_type': 'in_channel',
+              'text': mediaURL
+            });
 
-        if (!spotifyFound) {
-          console.log('No Spotify media found')
-          tryToGetAnotherRandomHit(res, hits, attempt)
+            // Record in Mixpanel
+            recordMixpanelEvent(req, mediaURL);
+          }
         }
       }
     }
@@ -197,9 +200,8 @@ function tryToGetAnotherRandomHit(res, hits, attempt) {
 // Send default song in case anything goes wrong
 function sendDefaultMessage(res) {
   console.log('Sending default message')
-  var message = {
+  res.send({
     'response_type': 'in_channel',
     'text': "Something went wrong 🤔 we're on it. In the meantime: " + 'https://open.spotify.com/track/2uljPrNySotVP1d42B30X2'
-  }
-  res.send(message);
+  });
 }
