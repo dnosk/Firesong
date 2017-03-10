@@ -111,48 +111,64 @@ app.post('/slack/firesong', function(req, res) {
       sendDefaultMessage(res);
     } else {
       // Get Random Genius Hit
-      var i = (hits.length < 4 ? hits.length : 3);
-      var random = Math.floor(Math.random() * i);
-
-      // Get Genius song from random song id
-      var geniusId = hits[random].result.id
-      genius.getSong(geniusId, function (error, song) {
-        if (error) {
-          console.log('Get random Genius song error: ', error);
-          sendDefaultMessage(res);
-        } else {
-          var songJSON = JSON.parse(song);
-
-          // Find the Spotify Media
-          var media = songJSON.response.song.media
-          for (index in media) {
-            if (media[index].provider == 'spotify') {
-              var spotifyURL = media[index].url
-              var spotifyId = spotifyURL.substr(37)
-
-              if (spotifyURL.includes('local')) {
-                console.log('Contains local: ' + spotifyURL)
-                sendDefaultMessage(res)
-              } else {
-                // Send message to Slack
-                var message = {
-                  'response_type': 'in_channel',
-                  'text': spotifyURL
-                };
-                res.send(message);
-
-                // Record in Mixpanel
-                recordMixpanelEvent(req, spotifyId);
-              }
-
-              break
-            }
-          }
-        }
-      });
+      getRandomGeniusHit(hits, 0)
     }
   });
 });
+
+function getRandomGeniusHit(hits, attempt) {
+  var i = (hits.length < 4 ? hits.length : 3);
+  var random = Math.floor(Math.random() * i);
+
+  // Get Genius song from random song id
+  var geniusId = hits[random].result.id
+  console.log('Got Genius song id: ' + geniusId)
+  genius.getSong(geniusId, function (error, song) {
+    if (error) {
+      console.log('Get random Genius song error: ', error);
+      tryToGetAnotherRandomHit(res, hits, attempt)
+    } else {
+      var songJSON = JSON.parse(song);
+
+      // Find the Spotify Media
+      if (!songJSON.response.song.media) {
+        tryToGetAnotherRandomHit(res, hits, attempt)
+      } else {
+        var media = songJSON.response.song.media
+        var spotifyFound = false
+        for (index in media) {
+          if (media[index].provider == 'spotify') {
+            spotifyFound = true
+            var spotifyURL = media[index].url
+            var spotifyId = spotifyURL.substr(37)
+
+            if (spotifyURL.includes('local')) {
+              console.log('Contains local: ' + spotifyURL)
+              tryToGetAnotherRandomHit(res, hits, attempt)
+            } else {
+              // Send message to Slack
+              var message = {
+                'response_type': 'in_channel',
+                'text': spotifyURL
+              };
+              res.send(message);
+
+              // Record in Mixpanel
+              recordMixpanelEvent(req, spotifyId);
+            }
+
+            break
+          }
+        }
+
+        if (!spotifyFound) {
+          console.log('No Spotify media found')
+          tryToGetAnotherRandomHit(res, hits, attempt)
+        }
+      }
+    }
+  });
+}
 
 // Mixpanel Event
 function recordMixpanelEvent(req, spotify_id) {
@@ -168,8 +184,19 @@ function recordMixpanelEvent(req, spotify_id) {
   });
 }
 
+// Try to get another random Genius Hit
+function tryToGetAnotherRandomHit(res, hits, attempt) {
+  if (attempt > 2) {
+    sendDefaultMessage(res);
+  } else {
+    console.log('Grab another random hit, attempts: ' + (attempt + 1))
+    getRandomGeniusHit(hits, attempt + 1);
+  }
+}
+
 // Send default song in case anything goes wrong
 function sendDefaultMessage(res) {
+  console.log('Sending default message')
   var message = {
     'response_type': 'in_channel',
     'text': "Something went wrong 🤔 we're on it. In the meantime: " + 'https://open.spotify.com/track/2uljPrNySotVP1d42B30X2'
