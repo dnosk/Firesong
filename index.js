@@ -111,12 +111,12 @@ app.post('/slack/firesong', function(req, res) {
       sendDefaultMessage(res);
     } else {
       // Get Random Genius Hit
-      getRandomGeniusHit(hits, 0)
+      getRandomGeniusHit(res, hits, 0)
     }
   });
 });
 
-function getRandomGeniusHit(hits, attempt) {
+function getRandomGeniusHit(res, hits, attempt) {
   var i = (hits.length < 4 ? hits.length : 3);
   var random = Math.floor(Math.random() * i);
 
