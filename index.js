@@ -111,12 +111,12 @@ app.post('/slack/firesong', function(req, res) {
       sendDefaultMessage(res);
     } else {
       // Get Random Genius Hit
-      getRandomGeniusHit(res, hits, 0)
+      getRandomGeniusHit(res, req, hits, 0)
     }
   });
 });
 
-function getRandomGeniusHit(res, hits, attempt) {
+function getRandomGeniusHit(res, req, hits, attempt) {
   var i = (hits.length < 4 ? hits.length : 3);
   var random = Math.floor(Math.random() * i);
 
@@ -126,14 +126,14 @@ function getRandomGeniusHit(res, hits, attempt) {
   genius.getSong(geniusId, function (error, song) {
     if (error) {
       console.log('Get random Genius song error: ', error);
-      tryToGetAnotherRandomHit(res, hits, attempt)
+      tryToGetAnotherRandomHit(res, req, hits, attempt)
     } else {
       var songJSON = JSON.parse(song);
 
       // Find the Spotify Media
       if (!songJSON.response.song.media) {
         console.log('No media')
-        tryToGetAnotherRandomHit(res, hits, attempt)
+        tryToGetAnotherRandomHit(res, req, hits, attempt)
       } else {
         var media = songJSON.response.song.media
         var spotifyMedia = []
@@ -142,7 +142,7 @@ function getRandomGeniusHit(res, hits, attempt) {
           var spotifyURL = spotifyMedia[0].url
           if (spotifyURL.includes('local')) {
             console.log('Local Spotify song id')
-            tryToGetAnotherRandomHit(res, hits, attempt)
+            tryToGetAnotherRandomHit(res, req, hits, attempt)
           } else {
             // Send message to Slack
             res.send({
@@ -156,7 +156,7 @@ function getRandomGeniusHit(res, hits, attempt) {
         } else {
           if (media.length == 0) {
             console.log('No media')
-            tryToGetAnotherRandomHit(res, hits, attempt)
+            tryToGetAnotherRandomHit(res, req, hits, attempt)
           } else {
             var mediaURL = media[0].url
             // Send message to Slack
@@ -189,12 +189,12 @@ function recordMixpanelEvent(req, spotify_id) {
 }
 
 // Try to get another random Genius Hit
-function tryToGetAnotherRandomHit(res, hits, attempt) {
+function tryToGetAnotherRandomHit(res, req, hits, attempt) {
   if (attempt > 2) {
     sendDefaultMessage(res);
   } else {
     console.log('Grab another random hit, attempts: ' + (attempt + 1))
-    getRandomGeniusHit(res, hits, attempt + 1);
+    getRandomGeniusHit(res, req, hits, attempt + 1);
   }
 }
 
