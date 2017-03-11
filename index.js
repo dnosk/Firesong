@@ -138,6 +138,7 @@ function getRandomGeniusHit(res, hits, attempt) {
         var media = songJSON.response.song.media
         var spotifyMedia = media.map(function(source) { if (source.provider == 'spotify') { return source } })
         if (spotifyMedia) {
+          console.log(spotifyMedia)
           var spotifyURL = spotifyMedia[0].url
           if (spotifyURL.includes('local')) {
             console.log('Local Spotify song id')
