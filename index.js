@@ -138,7 +138,7 @@ function getRandomGeniusHit(res, hits, attempt) {
         var media = songJSON.response.song.media
         var spotifyMedia = media.map(function(source) { if (source.provider == 'spotify') { return source } })
         if (spotifyMedia) {
-          var spotifyURL = spotifyMedia.url
+          var spotifyURL = spotifyMedia[0].url
           if (spotifyURL.includes('local')) {
             console.log('Local Spotify song id')
             tryToGetAnotherRandomHit(res, hits, attempt)
@@ -157,7 +157,7 @@ function getRandomGeniusHit(res, hits, attempt) {
             console.log('No media')
             tryToGetAnotherRandomHit(res, hits, attempt)
           } else {
-            var mediaURL = spotifyMedia.url
+            var mediaURL = media[0].url
             // Send message to Slack
             res.send({
               'response_type': 'in_channel',
